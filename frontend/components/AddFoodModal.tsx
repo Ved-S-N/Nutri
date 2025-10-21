@@ -1,135 +1,196 @@
-
-import React, { useState, useMemo } from 'react';
-import { useUserStore } from '../store/useUserStore';
-import { MOCK_FOOD_DATA } from '../constants';
-import { Food } from '../types';
-import Modal from './Modal';
-import Button from './Button';
+import React, { useState, useEffect } from "react";
+import Modal from "./Modal";
+import Input from "./Input";
+import Button from "./Button";
+import { FoodLogEntry } from "../types";
+import { apiFetch } from "../lib/api";
+import { useUserStore } from "../store/useUserStore";
 
 interface AddFoodModalProps {
   isOpen: boolean;
   onClose: () => void;
-  date: string; // YYYY-MM-DD
+  date: string;
+  onFoodAdded?: (food: FoodLogEntry) => void;
 }
 
-const AddFoodModal: React.FC<AddFoodModalProps> = ({ isOpen, onClose, date }) => {
+interface FoodSearchResult {
+  foodId: number;
+  name: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  servingSize?: string;
+}
+
+const AddFoodModal: React.FC<AddFoodModalProps> = ({
+  isOpen,
+  onClose,
+  date,
+  onFoodAdded,
+}) => {
   const { addFoodLogEntry } = useUserStore();
-  const [selectedFood, setSelectedFood] = useState<Food | null>(null);
-  const [grams, setGrams] = useState(100);
-  const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredFood = useMemo(() => {
-    return MOCK_FOOD_DATA.filter(food =>
-      food.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm]);
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<FoodSearchResult[]>([]);
+  const [selectedFood, setSelectedFood] = useState<FoodSearchResult | null>(
+    null
+  );
+  const [quantity, setQuantity] = useState<number>(100); // grams
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleAddFood = () => {
-    if (!selectedFood) return;
-    const factor = grams / 100;
-    const newEntry = {
-      id: new Date().toISOString(),
-      foodId: selectedFood.id,
-      foodName: selectedFood.name,
-      grams,
-      calories: selectedFood.calories * factor,
-      protein: selectedFood.protein * factor,
-      carbs: selectedFood.carbs * factor,
-      fat: selectedFood.fat * factor,
+  // 🔍 Fetch foods from backend as user types
+  useEffect(() => {
+    const fetchFoods = async () => {
+      if (query.trim().length < 2) {
+        setResults([]);
+        return;
+      }
+      try {
+        setLoading(true);
+        const data = await apiFetch(
+          `/api/food/search?q=${encodeURIComponent(query)}`
+        );
+        setResults(data.slice(0, 10)); // Limit to 10 results
+        setError(null);
+      } catch (err) {
+        console.error(err);
+        setError("Error fetching food data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const delayDebounce = setTimeout(fetchFoods, 500);
+    return () => clearTimeout(delayDebounce);
+  }, [query]);
+
+  // 🧮 Compute scaled macros by quantity
+  const scaledFood = selectedFood
+    ? {
+        ...selectedFood,
+        calories: (selectedFood.calories * quantity) / 100,
+        protein: (selectedFood.protein * quantity) / 100,
+        carbs: (selectedFood.carbs * quantity) / 100,
+        fat: (selectedFood.fat * quantity) / 100,
+      }
+    : null;
+
+  // 💾 Save selected food to store + backend
+  const handleSave = async () => {
+    if (!scaledFood || !selectedFood) return; // Add a check for selectedFood
+    console.log("Selected Food Object:", selectedFood);
+    const newEntry: FoodLogEntry = {
+      id: new Date().toISOString(), // This is fine for a temporary frontend key
       date,
+      foodId: selectedFood.foodId, // 👈 ADD THIS (See note below)
+      foodName: scaledFood.name, // 👈 RENAME THIS from 'name'
+      quantity: quantity, // 👈 ADD THIS
+      calories: scaledFood.calories,
+      protein: scaledFood.protein,
+      carbs: scaledFood.carbs,
+      fat: scaledFood.fat,
     };
-    addFoodLogEntry(newEntry);
-    onClose();
-    resetState();
-  };
-  
-  const resetState = () => {
-    setSelectedFood(null);
-    setGrams(100);
-    setSearchTerm('');
-  };
 
-  const calculatedMacros = useMemo(() => {
-    if (!selectedFood) return { calories: 0, protein: 0, carbs: 0, fat: 0 };
-    const factor = grams / 100;
-    return {
-      calories: selectedFood.calories * factor,
-      protein: selectedFood.protein * factor,
-      carbs: selectedFood.carbs * factor,
-      fat: selectedFood.fat * factor,
-    };
-  }, [selectedFood, grams]);
+    try {
+      await apiFetch("/api/food-log/add", {
+        method: "POST",
+        body: JSON.stringify(newEntry),
+      });
+      addFoodLogEntry(newEntry);
+      onFoodAdded?.(newEntry);
+      onClose();
+    } catch (err) {
+      console.error("Error saving food:", err);
+    }
+  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Add Food">
-      <div className="space-y-6">
-        <input
-          type="text"
-          placeholder="Search for food..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full bg-white/10 dark:bg-black/20 border border-white/20 dark:border-black/20 rounded-lg px-4 py-3 text-neutral-800 dark:text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-accent"
+      <div className="space-y-4">
+        {/* Search Input */}
+        <Input
+          id="search"
+          label="Search Food"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setSelectedFood(null);
+          }}
+          placeholder="e.g. Chicken Breast"
         />
-        {searchTerm && (
-          <div className="max-h-32 overflow-y-auto bg-white/5 dark:bg-black/10 rounded-lg">
-            {filteredFood.map(food => (
-              <div
-                key={food.id}
-                onClick={() => {
-                  setSelectedFood(food);
-                  setSearchTerm('');
-                }}
-                className="p-2 cursor-pointer hover:bg-accent/20 rounded-md"
+
+        {/* Search Results */}
+        {loading && <p className="text-neutral-400 text-sm">Searching...</p>}
+        {error && <p className="text-red-400 text-sm">{error}</p>}
+
+        {!selectedFood && !loading && results.length > 0 && (
+          <div className="max-h-48 overflow-y-auto space-y-2">
+            {results.map((food, idx) => (
+              <button
+                key={idx}
+                onClick={() => setSelectedFood(food)}
+                className="w-full text-left p-3 bg-white/5 hover:bg-accent/20 rounded-lg transition"
               >
-                {food.name}
-              </div>
+                <p className="font-medium">{food.name}</p>
+                <p className="text-xs text-neutral-400">
+                  {food.calories} kcal per {food.servingSize || "100g"}
+                </p>
+              </button>
             ))}
           </div>
         )}
 
+        {/* Selected Food Details */}
         {selectedFood && (
-          <>
+          <div className="space-y-4 mt-2">
             <h3 className="text-lg font-semibold">{selectedFood.name}</h3>
-            <div>
-              <label className="block text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-2">
-                Quantity: {grams}g
-              </label>
-              <input
-                type="range"
-                min="10"
-                max="500"
-                step="5"
-                value={grams}
-                onChange={(e) => setGrams(Number(e.target.value))}
-                className="w-full h-2 bg-neutral-200 dark:bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-accent"
+
+            <div className="flex items-center gap-2">
+              <Input
+                id="quantity"
+                label="Quantity (g)"
+                type="number"
+                value={quantity}
+                onChange={(e) => setQuantity(parseFloat(e.target.value))}
               />
+              <span className="text-neutral-400 text-sm">
+                per 100g serving base
+              </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 text-center">
-              <div className="bg-white/5 dark:bg-black/10 p-3 rounded-lg">
-                <p className="text-sm text-neutral-500">Calories</p>
-                <p className="font-bold text-lg">{calculatedMacros.calories.toFixed(0)}</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+              <div className="bg-white/5 p-3 rounded-lg text-center">
+                <p className="font-semibold">
+                  {scaledFood?.calories.toFixed(0)}
+                </p>
+                <p className="text-neutral-400">kcal</p>
               </div>
-              <div className="bg-white/5 dark:bg-black/10 p-3 rounded-lg">
-                <p className="text-sm text-neutral-500">Protein</p>
-                <p className="font-bold text-lg">{calculatedMacros.protein.toFixed(1)}g</p>
+              <div className="bg-white/5 p-3 rounded-lg text-center">
+                <p className="font-semibold">
+                  {scaledFood?.protein.toFixed(1)}
+                </p>
+                <p className="text-neutral-400">Protein (g)</p>
               </div>
-              <div className="bg-white/5 dark:bg-black/10 p-3 rounded-lg">
-                <p className="text-sm text-neutral-500">Carbs</p>
-                <p className="font-bold text-lg">{calculatedMacros.carbs.toFixed(1)}g</p>
+              <div className="bg-white/5 p-3 rounded-lg text-center">
+                <p className="font-semibold">{scaledFood?.carbs.toFixed(1)}</p>
+                <p className="text-neutral-400">Carbs (g)</p>
               </div>
-              <div className="bg-white/5 dark:bg-black/10 p-3 rounded-lg">
-                <p className="text-sm text-neutral-500">Fat</p>
-                <p className="font-bold text-lg">{calculatedMacros.fat.toFixed(1)}g</p>
+              <div className="bg-white/5 p-3 rounded-lg text-center">
+                <p className="font-semibold">{scaledFood?.fat.toFixed(1)}</p>
+                <p className="text-neutral-400">Fat (g)</p>
               </div>
             </div>
-          </>
+
+            <div className="flex justify-end gap-2 pt-3">
+              <Button variant="secondary" onClick={() => setSelectedFood(null)}>
+                Back
+              </Button>
+              <Button onClick={handleSave}>Save</Button>
+            </div>
+          </div>
         )}
-
-        <div className="flex justify-end gap-4">
-          <Button variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleAddFood} disabled={!selectedFood}>Add</Button>
-        </div>
       </div>
     </Modal>
   );

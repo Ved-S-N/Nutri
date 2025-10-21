@@ -1,9 +1,10 @@
 export interface User {
   name: string;
   email: string;
+  token: string;
 }
 
-export type WeightGoalMode = 'cutting' | 'bulking' | 'maintenance';
+export type WeightGoalMode = "cutting" | "bulking" | "maintenance";
 
 export interface Goals {
   calories: number;
@@ -25,10 +26,11 @@ export interface Food {
 }
 
 export interface FoodLogEntry {
-  id: string;
+  _id?: string; //from mongodb
+  id?: string; //for frontend/fallback use
   foodId: number;
   foodName: string;
-  grams: number;
+  quantity: number;
   calories: number;
   protein: number;
   carbs: number;
@@ -37,11 +39,11 @@ export interface FoodLogEntry {
 }
 
 export interface WeightLogEntry {
-    id: string;
-    date: string; // YYYY-MM-DD
-    weight: number; // in kg
+  id: string;
+  date: string; // YYYY-MM-DD
+  weight: number; // in kg
 }
 
-export type Page = 'dashboard' | 'analytics' | 'weight' | 'settings';
+export type Page = "dashboard" | "analytics" | "weight" | "settings";
 
-export type Theme = 'light' | 'dark';
+export type Theme = "light" | "dark";
