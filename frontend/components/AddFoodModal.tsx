@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Modal from "./Modal";
 import Input from "./Input";
 import Button from "./Button";
-import { FoodLogEntry } from "../types";
+import { FoodLogEntry, MealType } from "../types";
 import { apiFetch } from "../lib/api";
 import { useUserStore } from "../store/useUserStore";
 
@@ -11,6 +11,7 @@ interface AddFoodModalProps {
   onClose: () => void;
   date: string;
   onFoodAdded?: (food: FoodLogEntry) => void;
+  mealType?: MealType; // optional, can be preselected
 }
 
 interface FoodSearchResult {
@@ -23,11 +24,19 @@ interface FoodSearchResult {
   servingSize?: string;
 }
 
+const mealOptions: { label: string; value: MealType; emoji: string }[] = [
+  { label: "Breakfast", value: "breakfast", emoji: "🥣" },
+  { label: "Lunch", value: "lunch", emoji: "🍛" },
+  { label: "Dinner", value: "dinner", emoji: "🌮" },
+  { label: "Snack", value: "snack", emoji: "🍎" },
+];
+
 const AddFoodModal: React.FC<AddFoodModalProps> = ({
   isOpen,
   onClose,
   date,
   onFoodAdded,
+  mealType: preselectedMeal,
 }) => {
   const { addFoodLogEntry } = useUserStore();
 
@@ -37,8 +46,22 @@ const AddFoodModal: React.FC<AddFoodModalProps> = ({
     null
   );
   const [quantity, setQuantity] = useState<number>(100); // grams
+  const [mealType, setMealType] = useState<MealType>(
+    preselectedMeal || "lunch"
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 🔁 Reset when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setQuery("");
+      setResults([]);
+      setSelectedFood(null);
+      setQuantity(100);
+      setMealType(preselectedMeal || "lunch");
+    }
+  }, [isOpen, preselectedMeal]);
 
   // 🔍 Fetch foods from backend as user types
   useEffect(() => {
@@ -52,7 +75,7 @@ const AddFoodModal: React.FC<AddFoodModalProps> = ({
         const data = await apiFetch(
           `/api/food/search?q=${encodeURIComponent(query)}`
         );
-        setResults(data.slice(0, 10)); // Limit to 10 results
+        setResults(data.slice(0, 10));
         setError(null);
       } catch (err) {
         console.error(err);
@@ -79,14 +102,15 @@ const AddFoodModal: React.FC<AddFoodModalProps> = ({
 
   // 💾 Save selected food to store + backend
   const handleSave = async () => {
-    if (!scaledFood || !selectedFood) return; // Add a check for selectedFood
-    console.log("Selected Food Object:", selectedFood);
+    if (!scaledFood || !selectedFood) return;
+
     const newEntry: FoodLogEntry = {
-      id: new Date().toISOString(), // This is fine for a temporary frontend key
+      id: new Date().toISOString(),
       date,
-      foodId: selectedFood.foodId, // 👈 ADD THIS (See note below)
-      foodName: scaledFood.name, // 👈 RENAME THIS from 'name'
-      quantity: quantity, // 👈 ADD THIS
+      mealType,
+      foodId: selectedFood.foodId,
+      foodName: scaledFood.name,
+      quantity,
       calories: scaledFood.calories,
       protein: scaledFood.protein,
       carbs: scaledFood.carbs,
@@ -109,6 +133,29 @@ const AddFoodModal: React.FC<AddFoodModalProps> = ({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Add Food">
       <div className="space-y-4">
+        {/* Meal Type Selector */}
+        <div className="flex justify-between items-center gap-2">
+          <label className="text-sm font-medium text-neutral-400">
+            Select Meal
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {mealOptions.map((meal) => (
+              <button
+                key={meal.value}
+                onClick={() => setMealType(meal.value)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  mealType === meal.value
+                    ? "bg-accent text-white shadow-md"
+                    : "bg-white/10 hover:bg-white/20 text-neutral-300"
+                }`}
+              >
+                <span className="mr-1">{meal.emoji}</span>
+                {meal.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Search Input */}
         <Input
           id="search"
@@ -118,7 +165,7 @@ const AddFoodModal: React.FC<AddFoodModalProps> = ({
             setQuery(e.target.value);
             setSelectedFood(null);
           }}
-          placeholder="e.g. Chicken Breast"
+          placeholder="e.g. Chicken Curry, Poha, Paneer..."
         />
 
         {/* Search Results */}
@@ -187,7 +234,7 @@ const AddFoodModal: React.FC<AddFoodModalProps> = ({
               <Button variant="secondary" onClick={() => setSelectedFood(null)}>
                 Back
               </Button>
-              <Button onClick={handleSave}>Save</Button>
+              <Button onClick={handleSave}>Save to {mealType}</Button>
             </div>
           </div>
         )}

@@ -7,9 +7,11 @@ import mongoose from "mongoose";
 
 export const addFoodLog = async (req: any, res: Response) => {
   const user = req.user;
-  const { foodId, quantity, date } = req.body;
-  if (!foodId || !quantity)
-    return res.status(400).json({ message: "foodId and quantity required" });
+  const { foodId, quantity, date, mealType } = req.body;
+  if (!foodId || !quantity || !mealType)
+    return res
+      .status(400)
+      .json({ message: "foodId, quantity, and mealType required" });
 
   const food = await Food.findById(foodId);
   if (!food) return res.status(404).json({ message: "Food not found" });
@@ -33,6 +35,7 @@ export const addFoodLog = async (req: any, res: Response) => {
     carbs: macros.carbs,
     fat: macros.fat,
     date: date ? new Date(date) : new Date(),
+    mealType, // 👈 add this
   });
 
   await log.save();

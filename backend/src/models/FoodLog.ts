@@ -10,6 +10,7 @@ export interface IFoodLog extends Document {
   carbs: number;
   fat: number;
   date: Date;
+  mealType: string; // breakfast, lunch, dinner, snack
 }
 
 const FoodLogSchema: Schema<IFoodLog> = new Schema(
@@ -22,6 +23,11 @@ const FoodLogSchema: Schema<IFoodLog> = new Schema(
     carbs: { type: Number, required: true },
     fat: { type: Number, required: true },
     date: { type: Date, required: true },
+    mealType: {
+      type: String,
+      required: true,
+      enum: ["breakfast", "lunch", "dinner", "snack"],
+    },
   },
   { timestamps: true }
 );

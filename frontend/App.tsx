@@ -1,36 +1,38 @@
-
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useUserStore } from './store/useUserStore';
-import AuthPage from './pages/AuthPage';
-import DashboardPage from './pages/DashboardPage';
-import AnalyticsPage from './pages/AnalyticsPage';
-import SettingsPage from './pages/SettingsPage';
-import WeightTrackerPage from './pages/WeightTrackerPage';
-import Layout from './components/Layout';
-import { Page } from './types';
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useUserStore } from "./store/useUserStore";
+import AuthPage from "./pages/AuthPage";
+import DashboardPage from "./pages/DashboardPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
+import SettingsPage from "./pages/SettingsPage";
+import WeightTrackerPage from "./pages/WeightTrackerPage";
+import Layout from "./components/Layout";
+import { Page } from "./types";
+import CalendarPage from "./pages/CalendarPage";
 
 const App: React.FC = () => {
   const { isAuthenticated, theme, logout } = useUserStore();
-  const [currentPage, setCurrentPage] = useState<Page>('dashboard');
+  const [currentPage, setCurrentPage] = useState<Page>("dashboard");
 
   useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
     } else {
-      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove("dark");
     }
   }, [theme]);
 
   const renderPage = () => {
     switch (currentPage) {
-      case 'dashboard':
+      case "dashboard":
         return <DashboardPage />;
-      case 'analytics':
+      case "analytics":
         return <AnalyticsPage />;
-      case 'weight':
+      case "calendar":
+        return <CalendarPage />;
+      case "weight":
         return <WeightTrackerPage />;
-      case 'settings':
+      case "settings":
         return <SettingsPage />;
       default:
         return <DashboardPage />;

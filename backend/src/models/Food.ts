@@ -10,6 +10,7 @@ export interface IFood extends Document {
   fat: number;
   servingSize?: string;
   tags?: string[];
+  mealType: string;
 }
 
 const FoodSchema: Schema<IFood> = new Schema(
@@ -22,6 +23,7 @@ const FoodSchema: Schema<IFood> = new Schema(
     fat: { type: Number, required: true },
     servingSize: { type: String, default: "100g" },
     tags: [{ type: String }],
+    mealType: { type: String, required: true },
   },
   { timestamps: true }
 );

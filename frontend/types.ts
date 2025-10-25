@@ -25,6 +25,8 @@ export interface Food {
   fat: number; // per 100g
 }
 
+export type MealType = "breakfast" | "lunch" | "dinner" | "snack";
+
 export interface FoodLogEntry {
   _id?: string; //from mongodb
   id?: string; //for frontend/fallback use
@@ -36,6 +38,7 @@ export interface FoodLogEntry {
   carbs: number;
   fat: number;
   date: string; // YYYY-MM-DD
+  mealType: MealType;
 }
 
 export interface WeightLogEntry {
@@ -44,6 +47,11 @@ export interface WeightLogEntry {
   weight: number; // in kg
 }
 
-export type Page = "dashboard" | "analytics" | "weight" | "settings";
+export type Page =
+  | "dashboard"
+  | "analytics"
+  | "calendar"
+  | "weight"
+  | "settings";
 
 export type Theme = "light" | "dark";

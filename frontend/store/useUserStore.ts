@@ -7,6 +7,7 @@ import {
   WeightLogEntry,
   Theme,
   WeightGoalMode,
+  MealType,
 } from "../types";
 
 interface UserState {
@@ -19,7 +20,7 @@ interface UserState {
       })
     | null;
   goals: Goals;
-  foodLog: FoodLogEntry[];
+  foodLog: FoodLogEntry[]; // Now includes mealType + date
   weightLog: WeightLogEntry[];
   theme: Theme;
 
@@ -31,23 +32,26 @@ interface UserState {
   // GOALS
   setGoals: (goals: Goals) => void;
 
-  // FOOD + WEIGHT LOGS
+  // FOOD LOGS
   addFoodLogEntry: (entry: FoodLogEntry) => void;
   removeFoodLogEntry: (id: string) => void;
+  updateFoodLogEntry: (id: string, data: Partial<FoodLogEntry>) => void;
+  getFoodLogByDate: (date: string) => FoodLogEntry[];
+  getFoodLogByDateAndMeal: (date: string, meal: MealType) => FoodLogEntry[];
+  setFoodLog: (log: FoodLogEntry[]) => void;
+
+  // WEIGHT LOGS
   addWeightLogEntry: (entry: WeightLogEntry) => void;
   setWeightLog: (log: WeightLogEntry[]) => void;
-  setFoodLog: (log: FoodLogEntry[]) => void;
 
   // THEME
   toggleTheme: () => void;
   setTheme: (theme: Theme) => void;
 }
 
-// 👇 Default setup for new users
 const getInitialTheme = (): Theme => {
   if (
     typeof window !== "undefined" &&
-    window.matchMedia &&
     window.matchMedia("(prefers-color-scheme: dark)").matches
   ) {
     return "dark";
@@ -75,12 +79,8 @@ export const useUserStore = create<UserState>()(
       weightLog: [],
       theme: getInitialTheme(),
 
-      // ✅ Login with backend user + JWT
-      login: (user) => {
-        set({ isAuthenticated: true, user });
-      },
-
-      // ✅ Logout — clears everything (keeps theme)
+      // ✅ AUTH
+      login: (user) => set({ isAuthenticated: true, user }),
       logout: () => {
         const theme = get().theme;
         set({
@@ -93,26 +93,51 @@ export const useUserStore = create<UserState>()(
         });
         localStorage.removeItem("nutritrack-storage");
       },
-
-      // ✅ Update user info (goalWeight, goalMode, etc.)
       updateUser: (data) =>
         set((state) => ({
           user: state.user ? { ...state.user, ...data } : state.user,
         })),
 
-      // ✅ Update goals
+      // ✅ GOALS
       setGoals: (goals) => set({ goals }),
 
-      // ✅ Food logs (frontend local only for now)
+      // ✅ FOOD LOGS
       addFoodLogEntry: (entry) =>
-        set((state) => ({ foodLog: [...state.foodLog, entry] })),
+        set((state) => ({
+          foodLog: [
+            ...state.foodLog,
+            {
+              ...entry,
+              id: entry.id || `${Date.now()}-${Math.random()}`,
+              date: entry.date || new Date().toISOString().split("T")[0],
+              mealType: entry.mealType || "lunch",
+            },
+          ],
+        })),
 
       removeFoodLogEntry: (id) =>
         set((state) => ({
           foodLog: state.foodLog.filter((entry) => entry.id !== id),
         })),
 
-      // ✅ Weight logs (local + optional sync with backend)
+      updateFoodLogEntry: (id, data) =>
+        set((state) => ({
+          foodLog: state.foodLog.map((entry) =>
+            entry.id === id ? { ...entry, ...data } : entry
+          ),
+        })),
+
+      getFoodLogByDate: (date) =>
+        get().foodLog.filter((entry) => entry.date === date),
+
+      getFoodLogByDateAndMeal: (date, meal) =>
+        get().foodLog.filter(
+          (entry) => entry.date === date && entry.mealType === meal
+        ),
+
+      setFoodLog: (log) => set({ foodLog: log }),
+
+      // ✅ WEIGHT LOGS
       addWeightLogEntry: (entry) =>
         set((state) => {
           const existingIndex = state.weightLog.findIndex(
@@ -129,12 +154,9 @@ export const useUserStore = create<UserState>()(
           );
           return { weightLog: updated };
         }),
-
       setWeightLog: (log) => set({ weightLog: log }),
 
-      setFoodLog: (log) => set({ foodLog: log }),
-
-      // ✅ THEME CONTROL
+      // ✅ THEME
       toggleTheme: () =>
         set((state) => ({
           theme: state.theme === "dark" ? "light" : "dark",
