@@ -45,10 +45,9 @@ export const generateAISummary = async (req: AuthRequest, res: Response) => {
     const avgCarbs = avg("carbs");
     const avgFat = avg("fat");
 
-    // ✅ Fetch user goals
     const userData = (await User.findById(req.user._id)
       .select("goals")
-      .lean()) as IUser | null;
+      .lean()) as unknown as IUser | null;
 
     const goalMode = userData?.goals?.weightGoalMode ?? "maintenance";
     let goalFocus = "";
