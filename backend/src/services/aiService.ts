@@ -48,3 +48,19 @@ export const searchFoodUSDA = async (query: string, apiKey: string) => {
 
   return results;
 };
+
+export const recognizeFoodFromImage = async (file: Express.Multer.File) => {
+  console.log(
+    "AI image recognition placeholder. File received:",
+    file?.originalname
+  );
+
+  return {
+    totalCalories: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+    items: [],
+    message: "AI model not yet implemented",
+  };
+};
