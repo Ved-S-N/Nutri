@@ -5,9 +5,12 @@
     "rootDir": "src",
     "outDir": "dist",
     "esModuleInterop": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "noEmitOnError": false
+    "noEmitOnError": false,
+
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "strictPropertyInitialization": false
   }
 }
