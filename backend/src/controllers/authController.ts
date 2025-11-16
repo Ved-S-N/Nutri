@@ -20,10 +20,8 @@ export const register = async (req: Request, res: Response) => {
   });
 
   await user.save();
-  const token = generateToken(
-    user._id.toString(),
-    process.env.JWT_SECRET || "secret"
-  );
+  const token = generateToken(user._id.toString());
+
   res.status(201).json({
     id: user._id,
     name: user.name,
@@ -43,10 +41,8 @@ export const login = async (req: Request, res: Response) => {
   const isMatch = await user.matchPassword(password);
   if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
 
-  const token = generateToken(
-    user._id.toString(),
-    process.env.JWT_SECRET || "secret"
-  );
+  const token = generateToken(user._id.toString());
+
   res.json({
     id: user._id,
     name: user.name,
