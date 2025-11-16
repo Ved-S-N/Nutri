@@ -52,7 +52,7 @@ export const addFoodLog = async (req: any, res: Response) => {
         quantity || 100
       );
 
-      foodRef = food._id;
+      foodRef = food._id as any;
     } else {
       // ✅ Case 2 — AI or manual entry (macros passed directly)
       macros = {

@@ -16,6 +16,7 @@
     "allowJs": true,
     "checkJs": false,
 
-    "pretty": false
+    "pretty": false,
+    "typeRoots": ["./src/types", "./node_modules/@types"]
   }
 }
