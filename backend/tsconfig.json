@@ -5,12 +5,17 @@
     "rootDir": "src",
     "outDir": "dist",
     "esModuleInterop": true,
+
     "skipLibCheck": true,
     "noEmitOnError": false,
-
     "strict": false,
     "noImplicitAny": false,
     "strictNullChecks": false,
-    "strictPropertyInitialization": false
+    "strictPropertyInitialization": false,
+
+    "allowJs": true,
+    "checkJs": false,
+
+    "pretty": false
   }
 }
