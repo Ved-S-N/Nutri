@@ -58,4 +58,8 @@ app.get("/", (req, res) => res.send("NutriTrack API"));
 app.use(notFound);
 app.use(errorHandler);
 
+console.log("🔑 MONGO_URI:", process.env.MONGO_URI);
+console.log("🔑 JWT_SECRET:", process.env.JWT_SECRET);
+console.log("🔑 NODE_ENV:", process.env.NODE_ENV);
+
 export default app;
