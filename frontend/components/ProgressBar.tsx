@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { motion } from 'framer-motion';
+import React from "react";
+import { motion } from "framer-motion";
 
 interface ProgressBarProps {
   value: number;
@@ -9,12 +8,15 @@ interface ProgressBarProps {
 }
 
 const ProgressBar: React.FC<ProgressBarProps> = ({ value, max, label }) => {
-  const percentage = max > 0 ? (value / max) * 100 : 0;
+  const rawPercentage = max > 0 ? (value / max) * 100 : 0;
+  const percentage = Math.max(0, Math.min(100, rawPercentage));
 
   return (
     <div>
       <div className="flex justify-between items-center mb-1">
-        <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400">{label}</span>
+        <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
+          {label}
+        </span>
         <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200">
           {Math.round(value)} / {max}
         </span>

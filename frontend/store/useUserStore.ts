@@ -8,6 +8,9 @@ import {
   Theme,
   WeightGoalMode,
   MealType,
+  WorkoutLogEntry,
+  HydrationLogEntry,
+  WellnessLogEntry,
 } from "../types";
 
 interface UserState {
@@ -20,19 +23,24 @@ interface UserState {
       })
     | null;
   goals: Goals;
-  foodLog: FoodLogEntry[]; // Now includes mealType + date
+
+  foodLog: FoodLogEntry[];
   weightLog: WeightLogEntry[];
+  workoutLog: WorkoutLogEntry[];
+  hydrationLog: HydrationLogEntry[];
+  wellnessLog: WellnessLogEntry[];
+
   theme: Theme;
 
-  // AUTH
+  // Auth
   login: (user: User & { token?: string }) => void;
   logout: () => void;
   updateUser: (data: Partial<User>) => void;
 
-  // GOALS
+  // Goals
   setGoals: (goals: Goals) => void;
 
-  // FOOD LOGS
+  // Food
   addFoodLogEntry: (entry: FoodLogEntry) => void;
   removeFoodLogEntry: (id: string) => void;
   updateFoodLogEntry: (id: string, data: Partial<FoodLogEntry>) => void;
@@ -40,11 +48,24 @@ interface UserState {
   getFoodLogByDateAndMeal: (date: string, meal: MealType) => FoodLogEntry[];
   setFoodLog: (log: FoodLogEntry[]) => void;
 
-  // WEIGHT LOGS
+  // Weight
   addWeightLogEntry: (entry: WeightLogEntry) => void;
   setWeightLog: (log: WeightLogEntry[]) => void;
 
-  // THEME
+  // Workout
+  addWorkoutLogEntry: (entry: WorkoutLogEntry) => void;
+  removeWorkoutLogEntry: (id: string) => void;
+  setWorkoutLog: (log: WorkoutLogEntry[]) => void;
+
+  // Hydration
+  setHydrationForDate: (entry: HydrationLogEntry) => void;
+  setHydrationLog: (log: HydrationLogEntry[]) => void;
+
+  // Wellness
+  setWellnessForDate: (entry: WellnessLogEntry) => void;
+  setWellnessLog: (log: WellnessLogEntry[]) => void;
+
+  // Theme
   toggleTheme: () => void;
   setTheme: (theme: Theme) => void;
 }
@@ -75,11 +96,16 @@ export const useUserStore = create<UserState>()(
       isAuthenticated: false,
       user: null,
       goals: defaultGoals,
+
       foodLog: [],
       weightLog: [],
+      workoutLog: [],
+      hydrationLog: [],
+      wellnessLog: [],
+
       theme: getInitialTheme(),
 
-      // ✅ AUTH
+      // AUTH
       login: (user) => set({ isAuthenticated: true, user }),
       logout: () => {
         const theme = get().theme;
@@ -89,6 +115,9 @@ export const useUserStore = create<UserState>()(
           goals: defaultGoals,
           foodLog: [],
           weightLog: [],
+          workoutLog: [],
+          hydrationLog: [],
+          wellnessLog: [],
           theme,
         });
         localStorage.removeItem("nutritrack-storage");
@@ -98,10 +127,10 @@ export const useUserStore = create<UserState>()(
           user: state.user ? { ...state.user, ...data } : state.user,
         })),
 
-      // ✅ GOALS
+      // GOALS
       setGoals: (goals) => set({ goals }),
 
-      // ✅ FOOD LOGS
+      // FOOD LOG
       addFoodLogEntry: (entry) =>
         set((state) => ({
           foodLog: [
@@ -114,41 +143,34 @@ export const useUserStore = create<UserState>()(
             },
           ],
         })),
-
       removeFoodLogEntry: (id) =>
         set((state) => ({
           foodLog: state.foodLog.filter((entry) => entry.id !== id),
         })),
-
       updateFoodLogEntry: (id, data) =>
         set((state) => ({
           foodLog: state.foodLog.map((entry) =>
             entry.id === id ? { ...entry, ...data } : entry
           ),
         })),
-
       getFoodLogByDate: (date) =>
         get().foodLog.filter((entry) => entry.date === date),
-
       getFoodLogByDateAndMeal: (date, meal) =>
         get().foodLog.filter(
           (entry) => entry.date === date && entry.mealType === meal
         ),
-
       setFoodLog: (log) => set({ foodLog: log }),
 
-      // ✅ WEIGHT LOGS
+      // WEIGHT LOG
       addWeightLogEntry: (entry) =>
         set((state) => {
           const existingIndex = state.weightLog.findIndex(
             (log) => log.date === entry.date
           );
           const updated = [...state.weightLog];
-          if (existingIndex > -1) {
+          if (existingIndex > -1)
             updated[existingIndex] = { ...updated[existingIndex], ...entry };
-          } else {
-            updated.push(entry);
-          }
+          else updated.push(entry);
           updated.sort(
             (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
           );
@@ -156,7 +178,46 @@ export const useUserStore = create<UserState>()(
         }),
       setWeightLog: (log) => set({ weightLog: log }),
 
-      // ✅ THEME
+      // WORKOUT LOG
+      addWorkoutLogEntry: (entry) =>
+        set((state) => {
+          const updated = [...state.workoutLog];
+          const index = updated.findIndex((log) => log._id === entry._id);
+          if (index > -1) updated[index] = { ...updated[index], ...entry };
+          else updated.push(entry);
+          return { workoutLog: updated };
+        }),
+      removeWorkoutLogEntry: (id) =>
+        set((state) => ({
+          workoutLog: state.workoutLog.filter(
+            (entry) => entry._id !== id && entry.id !== id
+          ),
+        })),
+      setWorkoutLog: (log) => set({ workoutLog: log }),
+
+      // HYDRATION LOG
+      setHydrationForDate: (entry) =>
+        set((state) => {
+          const newHydrationLog = state.hydrationLog.filter(
+            (log) => log.date !== entry.date
+          );
+          newHydrationLog.push(entry);
+          return { hydrationLog: newHydrationLog };
+        }),
+      setHydrationLog: (log) => set({ hydrationLog: log }),
+
+      // WELLNESS LOG
+      setWellnessForDate: (entry) =>
+        set((state) => {
+          const newWellnessLog = state.wellnessLog.filter(
+            (log) => log.date !== entry.date
+          );
+          newWellnessLog.push(entry);
+          return { wellnessLog: newWellnessLog };
+        }),
+      setWellnessLog: (log) => set({ wellnessLog: log }),
+
+      // THEME
       toggleTheme: () =>
         set((state) => ({
           theme: state.theme === "dark" ? "light" : "dark",
@@ -171,7 +232,12 @@ export const useUserStore = create<UserState>()(
         user: state.user,
         goals: state.goals,
         theme: state.theme,
+        foodLog: state.foodLog,
+        workoutLog: state.workoutLog,
+        hydrationLog: state.hydrationLog,
+        wellnessLog: state.wellnessLog,
       }),
     }
   )
 );
+//

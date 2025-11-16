@@ -10,7 +10,10 @@ export interface IFood extends Document {
   fat: number;
   servingSize?: string;
   tags?: string[];
-  mealType: string;
+  mealType?: string;
+  brand?: string;
+  isCustom?: boolean;
+  userId?: mongoose.Types.ObjectId;
 }
 
 const FoodSchema: Schema<IFood> = new Schema(
@@ -23,7 +26,10 @@ const FoodSchema: Schema<IFood> = new Schema(
     fat: { type: Number, required: true },
     servingSize: { type: String, default: "100g" },
     tags: [{ type: String }],
-    mealType: { type: String, required: true },
+    mealType: { type: String },
+    brand: { type: String },
+    isCustom: { type: Boolean, default: false },
+    userId: { type: Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }
 );

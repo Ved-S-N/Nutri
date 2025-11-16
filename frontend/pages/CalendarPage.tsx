@@ -6,55 +6,75 @@ import MealSection from "../components/MealSection";
 import Card from "../components/Card";
 import ProgressBar from "../components/ProgressBar";
 import { CalendarDaysIcon } from "../components/icons/HeroIcons";
-import { apiFetch } from "../lib/api"; // <-- make sure this helper attaches JWT token!
+import { apiFetch } from "../lib/api";
 
-const getTodayDateString = () => new Date().toISOString().split("T")[0];
+const getLocalDateString = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
 const CalendarPage: React.FC = () => {
   const { foodLog, goals, setFoodLog, user } = useUserStore();
   const [selectedDate, setSelectedDate] = useState<string>(
-    getTodayDateString()
+    getLocalDateString(new Date())
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const dateInputRef = useRef<HTMLInputElement>(null);
 
-  // 🔁 Fetch logs from backend whenever selectedDate changes
+  // 🔁 Fetch logs for selected date
   useEffect(() => {
     const fetchDailyLogs = async () => {
+      if (!user) return;
       try {
         setLoading(true);
         setError(null);
 
         const data = await apiFetch(`/api/food-log/daily?date=${selectedDate}`);
-        // Response: { logs: [{ _id, food: {_id, name}, quantity, calories, protein, carbs, fat, date, mealType }], totals: {...} }
 
         if (data?.logs && Array.isArray(data.logs)) {
-          const mappedLogs = data.logs.map((log: any) => ({
-            id: log._id,
-            foodId: log.food._id,
-            foodName: log.food.name,
-            quantity: log.quantity,
-            calories: log.calories,
-            protein: log.protein,
-            carbs: log.carbs,
-            fat: log.fat,
-            date: new Date(log.date).toISOString().split("T")[0],
-            mealType: log.mealType,
-          }));
-          setFoodLog(mappedLogs); // ✅ store in Zustand
+          const normalizedLogs: FoodLogEntry[] = data.logs.map(
+            (log: any, idx: number) => {
+              const resolvedFoodId = log.food?._id || log.foodId || "unknown";
+              const resolvedDate = getLocalDateString(new Date(log.date));
+              const resolvedMeal = log.mealType || "lunch";
+              const uniqueFallback = `${resolvedFoodId}-${resolvedDate}-${resolvedMeal}-${
+                log.quantity || 0
+              }-${log.calories || 0}-${idx}`;
+
+              return {
+                id: log._id || uniqueFallback,
+                foodId: resolvedFoodId,
+                // Strictly prefer per-entry stored name; fallback to populated only if missing
+                foodName:
+                  log.name || (log.food && log.food.name) || "Unknown Food",
+                quantity: log.quantity || 0,
+                calories: log.calories || 0,
+                protein: log.protein || 0,
+                carbs: log.carbs || 0,
+                fat: log.fat || 0,
+                date: resolvedDate,
+                mealType: resolvedMeal,
+              } as FoodLogEntry;
+            }
+          );
+
+          setFoodLog(normalizedLogs); // ✅ overwrite with fresh data
         } else {
-          setFoodLog([]); // no data for this date
+          setFoodLog([]);
         }
       } catch (err) {
         console.error("Error fetching daily logs:", err);
         setError("Could not load food logs for this date");
+        setFoodLog([]);
       } finally {
         setLoading(false);
       }
     };
 
-    if (user) fetchDailyLogs();
+    fetchDailyLogs();
   }, [selectedDate, user, setFoodLog]);
 
   // 🗓️ Date range (last 7 days)
@@ -62,9 +82,9 @@ const CalendarPage: React.FC = () => {
     const dates = [];
     const today = new Date();
     for (let i = 6; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(today.getDate() - i);
-      dates.push(date);
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      dates.push(d);
     }
     return dates;
   }, []);
@@ -74,7 +94,7 @@ const CalendarPage: React.FC = () => {
     return foodLog.filter((entry) => entry.date === selectedDate);
   }, [foodLog, selectedDate]);
 
-  // 🍽️ Split into meals
+  // 🍽️ Split logs by meal
   const meals = useMemo(() => {
     const mealData: Record<MealType, FoodLogEntry[]> = {
       breakfast: [],
@@ -90,14 +110,14 @@ const CalendarPage: React.FC = () => {
     return mealData;
   }, [logsForSelectedDate]);
 
-  // 📊 Totals
+  // 📊 Daily totals
   const dailyTotals = useMemo(() => {
     return logsForSelectedDate.reduce(
       (acc, entry) => {
-        acc.calories += entry.calories;
-        acc.protein += entry.protein;
-        acc.carbs += entry.carbs;
-        acc.fat += entry.fat;
+        acc.calories += entry.calories || 0;
+        acc.protein += entry.protein || 0;
+        acc.carbs += entry.carbs || 0;
+        acc.fat += entry.fat || 0;
         return acc;
       },
       { calories: 0, protein: 0, carbs: 0, fat: 0 }
@@ -109,13 +129,13 @@ const CalendarPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-32">
       <h1 className="text-3xl font-bold">Nutrition Calendar</h1>
 
       <Card>
         <div className="flex items-center space-x-2 overflow-x-auto pb-2 -mx-2 px-2">
           {dateRange.map((date) => {
-            const dateString = date.toISOString().split("T")[0];
+            const dateString = getLocalDateString(date);
             const isSelected = dateString === selectedDate;
             return (
               <motion.button

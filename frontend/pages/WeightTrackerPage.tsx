@@ -75,6 +75,10 @@ const WeightTrackerPage: React.FC = () => {
     fetchWeights();
   }, [user?.token, setWeightLog]);
 
+  useEffect(() => {
+    console.log("💾 Weight Log Data:", weightLog);
+  }, [weightLog]);
+
   // 💾 Save today’s weight (local + backend)
   const handleSaveWeight = async () => {
     const weightValue = parseFloat(weight);
@@ -191,42 +195,46 @@ const WeightTrackerPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Weight Tracker</h1>
+      {/* HEADER */}
+      <h1 className="text-3xl font-bold">Weight</h1>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* INPUT + SAVE CARD */}
+      {/* FIRST ROW (Mobile friendly) */}
+      <div className="space-y-6">
+        {/* INPUT CARD */}
         <Card>
           <h2 className="text-xl font-semibold mb-4">Today's Weight</h2>
-          <div className="flex items-end gap-4">
+
+          <div className="flex flex-col gap-4">
             <Input
               label="Weight (kg)"
-              id="weight"
-              name="weight"
               type="number"
               step="0.1"
               value={weight}
               onChange={(e) => setWeight(e.target.value)}
               placeholder="e.g., 75.5"
             />
+
             <Button onClick={handleSaveWeight} disabled={!weight || loading}>
               {isSaved ? "Saved!" : loading ? "Saving..." : "Save"}
             </Button>
           </div>
         </Card>
 
-        {/* BMI + PROGRESS CARD */}
+        {/* STATS CARD */}
         <Card>
           <h2 className="text-xl font-semibold mb-4">Vital Stats</h2>
-          <div className="flex justify-around items-center h-full">
+
+          <div className="grid grid-cols-2 gap-6">
             <div className="text-center">
               <p className="text-sm text-neutral-500">BMI</p>
               <p className="font-bold text-2xl">{bmi ? bmi.toFixed(1) : "-"}</p>
               <span
-                className={`px-2 py-0.5 text-xs font-semibold text-white rounded-full ${bmiColor}`}
+                className={`px-2 py-0.5 mt-1 inline-block text-xs text-white rounded-full ${bmiColor}`}
               >
                 {bmiCategory}
               </span>
             </div>
+
             <div className="text-center">
               <p className="text-sm text-neutral-500">Progress</p>
               <p
@@ -243,44 +251,49 @@ const WeightTrackerPage: React.FC = () => {
         </Card>
       </div>
 
-      {/* TREND CHART */}
+      {/* TREND CARD */}
       <Card>
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-4">
-          <h2 className="text-xl font-semibold">Weight Trend</h2>
-          <div className="flex w-full sm:w-auto p-1 space-x-1 bg-neutral-200 dark:bg-neutral-700/50 rounded-lg">
-            {goalModes.map((mode) => (
-              <button
-                key={mode.value}
-                onClick={() => handleModeChange(mode.value)}
-                className={`relative w-full px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                  goals.weightGoalMode === mode.value
-                    ? "text-white"
-                    : "text-neutral-600 dark:text-neutral-300 hover:bg-white/10 dark:hover:bg-black/20"
-                }`}
-              >
-                {goals.weightGoalMode === mode.value && (
-                  <motion.div
-                    layoutId="weightModeIndicator"
-                    className="absolute inset-0 rounded-md z-0"
-                    style={{ backgroundColor: modeStyles.color }}
-                  />
-                )}
-                <span className="relative z-10">{mode.label}</span>
-              </button>
-            ))}
-          </div>
+        <h2 className="text-xl font-semibold mb-4">Weight Trend</h2>
+
+        {/* Mobile friendly tab selector */}
+        <div className="flex w-full p-1 space-x-1 bg-neutral-200 dark:bg-neutral-700/50 rounded-lg overflow-x-auto scrollbar-none">
+          {goalModes.map((mode) => (
+            <button
+              key={mode.value}
+              onClick={() => handleModeChange(mode.value)}
+              className={`relative flex-1 min-w-[100px] text-center px-4 py-2 text-sm rounded-md transition-colors ${
+                goals.weightGoalMode === mode.value
+                  ? "text-white"
+                  : "text-neutral-700 dark:text-neutral-300"
+              }`}
+            >
+              {goals.weightGoalMode === mode.value && (
+                <motion.div
+                  layoutId="weightModeIndicator"
+                  className="absolute inset-0 rounded-md"
+                  style={{ backgroundColor: modeStyles.color }}
+                />
+              )}
+              <span className="relative z-10">{mode.label}</span>
+            </button>
+          ))}
         </div>
+
+        {/* Chart */}
         {weightChartData.length > 1 ? (
-          <LineChart
-            data={weightChartData}
-            dataKey="weight"
-            xAxisKey="date"
-            strokeColor={modeStyles.color}
-          />
+          <div className="mt-4">
+            <LineChart
+              data={weightChartData}
+              dataKey="weight"
+              xAxisKey="date"
+              unit="kg"
+              strokeColor={modeStyles.color}
+            />
+          </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-48 text-center">
             <p className="text-neutral-500">
-              Log your weight for a few days to see a chart.
+              Log a few entries to see the chart.
             </p>
             <p className="text-xs text-neutral-500 mt-2">
               {modeStyles.motivational}
@@ -289,34 +302,33 @@ const WeightTrackerPage: React.FC = () => {
         )}
       </Card>
 
-      {/* HISTORY */}
+      {/* HISTORY CARD */}
       <Card>
         <h2 className="text-xl font-semibold mb-4">History</h2>
-        <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
+
+        <div className="space-y-3 max-h-[260px] overflow-y-auto pr-2 scrollbar-none">
           {weightHistory.length > 0 ? (
             weightHistory.map((entry) => (
               <div
                 key={entry.id}
-                className="flex justify-between items-center bg-white/5 dark:bg-black/10 p-3 rounded-lg"
+                className="flex justify-between items-center bg-white/5 dark:bg-black/20 p-3 rounded-lg"
               >
                 <div>
                   <p className="font-medium">
                     {new Date(entry.date).toLocaleDateString("en-US", {
-                      weekday: "long",
-                      month: "long",
+                      weekday: "short",
+                      month: "short",
                       day: "numeric",
                     })}
                   </p>
-                  <p className="text-sm text-neutral-500">
-                    {entry.weight.toFixed(1)} kg
-                  </p>
+                  <p className="text-sm text-neutral-500">{entry.weight} kg</p>
                 </div>
                 <p
-                  className={`font-semibold text-sm ${
+                  className={`font-semibold ${
                     entry.change > 0
-                      ? "text-rose-500"
+                      ? "text-red-500"
                       : entry.change < 0
-                      ? "text-sky-500"
+                      ? "text-green-400"
                       : "text-neutral-500"
                   }`}
                 >

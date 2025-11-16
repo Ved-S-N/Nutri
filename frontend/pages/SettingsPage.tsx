@@ -108,25 +108,47 @@ const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Settings</h1>
+    <div className="space-y-4 pb-28 relative px-4">
+      {/* Gradient Background Glow */}
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-emerald-500/10 via-emerald-500/5 to-transparent blur-xl" />
+
+      <h1 className="text-3xl font-extrabold tracking-tight">Settings</h1>
+      <p className="text-neutral-400 mt-1 text-md">
+        Manage your goals & preferences.
+      </p>
 
       {/* PROFILE CARD */}
-      <Card>
+      <Card
+        className="
+  rounded-3xl bg-white/5 dark:bg-black/10 
+  backdrop-blur-xl border border-white/10
+  shadow-[0_6px_25px_-10px_rgba(0,0,0,0.5)]
+  p-5 space-y-4
+"
+      >
         <h2 className="text-xl font-semibold mb-4">Profile</h2>
-        <p>
-          <strong>Name:</strong> {user?.name}
-        </p>
-        <p>
-          <strong>Email:</strong> {user?.email}
-        </p>
+        <div className="space-y-1 text-neutral-300">
+          <p>
+            <span className="text-neutral-500">Name:</span> {user?.name}
+          </p>
+          <p>
+            <span className="text-neutral-500">Email:</span> {user?.email}
+          </p>
+        </div>
       </Card>
 
       {/* GOALS CARD */}
-      <Card>
+      <Card
+        className="
+  rounded-3xl bg-white/5 dark:bg-black/10 
+  backdrop-blur-xl border border-white/10
+  shadow-[0_6px_25px_-10px_rgba(0,0,0,0.5)]
+  p-5 space-y-4
+"
+      >
         <h2 className="text-xl font-semibold mb-4">Goals</h2>
         <div className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Target Weight (kg)"
               id="weight"
@@ -144,16 +166,16 @@ const SettingsPage: React.FC = () => {
               onChange={handleGoalChange}
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-2">
-              Weight Goal
-            </label>
+          <label className="block text-md font-medium text-white-600 dark:text-white-400 mb-2">
+            Weight Goal
+          </label>
+          <div className="flex w-full p-1 overflow-x-auto space-x-1 bg-neutral-200 dark:bg-neutral-700 rounded-2xl">
             <GoalModeSelector
               value={currentGoals.weightGoalMode}
               onChange={handleModeChange}
             />
           </div>
-          <div className="grid md:grid-cols-2 gap-4 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Calories (kcal)"
               id="calories"
@@ -193,11 +215,11 @@ const SettingsPage: React.FC = () => {
           <p className="text-red-400 text-sm text-center mt-4">{error}</p>
         )}
 
-        <div className="mt-6 flex justify-end">
+        <div className="mt-6 flex ">
           <Button
             onClick={handleSaveGoals}
-            className="relative"
             disabled={saving}
+            className="w-full py-3 text-lg font-semibold"
           >
             {saving ? "Saving..." : isSaved ? "Saved!" : "Save Goals"}
           </Button>
@@ -205,7 +227,7 @@ const SettingsPage: React.FC = () => {
       </Card>
 
       {/* THEME TOGGLE CARD */}
-      <Card>
+      {/* <Card>
         <h2 className="text-xl font-semibold mb-4">Appearance</h2>
         <div className="flex items-center justify-between">
           <span>Theme</span>
@@ -220,11 +242,15 @@ const SettingsPage: React.FC = () => {
             />
           </button>
         </div>
-      </Card>
+      </Card> */}
 
       {/* LOGOUT */}
-      <div className="pt-4">
-        <Button variant="secondary" onClick={logout} className="w-full">
+      <div className="pt-2">
+        <Button
+          variant="secondary"
+          onClick={logout}
+          className="w-full py-3 rounded-2xl text-lg"
+        >
           Log Out
         </Button>
       </div>

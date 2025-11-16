@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import Food from "../models/Food";
+import CustomFood from "../models/CustomFood"; // 🧩 add this
 import { searchFoodUSDA } from "../services/aiService";
 import { searchFoodSpoonacular } from "../services/spooncularService";
 
@@ -44,14 +45,13 @@ export const searchFoods = async (req: Request, res: Response) => {
       }));
     }
 
-    // 2️⃣ If USDA fails or gives too few results → Fallback to Spoonacular
+    // 2️⃣ Fallback to Spoonacular if USDA too few results
     if (combinedResults.length < 3) {
       console.log(
         `⚠️ USDA returned few results, trying Spoonacular for '${q}'`
       );
       const spoonacularResults = await searchFoodSpoonacular(q);
 
-      // Add Spoonacular foods to DB (for caching)
       const spoonFoods = await Promise.all(
         spoonacularResults.map(async (item) => {
           const foodInDb = await Food.findOneAndUpdate(
@@ -81,13 +81,17 @@ export const searchFoods = async (req: Request, res: Response) => {
       );
     }
 
-    // 3️⃣ If still empty → fallback to local DB search
-    if (combinedResults.length === 0) {
-      const mongoResults = await Food.find({
-        name: { $regex: q, $options: "i" },
-      }).limit(10);
+    // 3️⃣ Include local MongoDB results
+    const mongoResults = await Food.find({
+      name: { $regex: q, $options: "i" },
+    }).limit(10);
 
-      combinedResults = mongoResults.map((food) => ({
+    const existingIds = new Set(
+      combinedResults.map((r) => r.foodId.toString())
+    );
+    const localOnlyResults = mongoResults
+      .filter((food) => !existingIds.has(food._id.toString()))
+      .map((food) => ({
         foodId: food._id,
         name: food.name,
         calories: food.calories,
@@ -95,13 +99,35 @@ export const searchFoods = async (req: Request, res: Response) => {
         carbs: food.carbs,
         fat: food.fat,
       }));
+
+    combinedResults.push(...localOnlyResults);
+
+    // 4️⃣ Include user's custom foods
+    if (req.user && req.user._id) {
+      const userCustomFoods = await CustomFood.find({
+        user: req.user._id,
+        name: { $regex: q, $options: "i" },
+      }).limit(10);
+
+      const formattedCustomFoods = userCustomFoods.map((food) => ({
+        foodId: food._id,
+        name: food.name,
+        calories: food.totalCalories,
+        protein: food.totalProtein,
+        carbs: food.totalCarbs,
+        fat: food.totalFat,
+        isCustom: true, // 👈 flag for frontend
+      }));
+
+      combinedResults.push(...formattedCustomFoods);
     }
 
+    // 5️⃣ If no results at all
     if (combinedResults.length === 0) {
       return res.status(404).json({ message: "No food found" });
     }
 
-    // 4️⃣ Return the unified response
+    // ✅ Final response
     return res.json(combinedResults);
   } catch (err) {
     console.error("Food search failed", err);

@@ -47,11 +47,41 @@ export interface WeightLogEntry {
   weight: number; // in kg
 }
 
+export type WorkoutIntensity = "low" | "medium" | "high";
+
+export interface WorkoutLogEntry {
+  _id: string;
+  id?: string;
+  date: string; // YYYY-MM-DD
+  type: string;
+  durationMinutes: number;
+  intensity: WorkoutIntensity;
+  caloriesBurned: number;
+}
+
+export interface HydrationLogEntry {
+  _id?: string;
+  date: string; // YYYY-MM-DD, used as ID
+  glassesConsumed: number;
+  goalGlasses: number;
+}
+
+export interface WellnessLogEntry {
+  _id?: string;
+  date: string; // YYYY-MM-DD, used as ID
+  sleepHours: number;
+  moodRating: number; // 1 to 5
+  notes?: string;
+}
+
 export type Page =
   | "dashboard"
   | "analytics"
   | "calendar"
   | "weight"
-  | "settings";
+  | "wellness"
+  | "scan"
+  | "settings"
+  | "insights";
 
 export type Theme = "light" | "dark";

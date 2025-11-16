@@ -4,10 +4,12 @@ import { Page } from "../types";
 import {
   HomeIcon,
   ChartBarIcon,
-  Cog6ToothIcon,
   ScaleIcon,
   CalendarDaysIcon,
+  HeartIcon,
 } from "./icons/HeroIcons";
+import { label } from "framer-motion/client";
+import { Lightbulb } from "lucide-react";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -19,8 +21,9 @@ const navItems = [
   { page: "dashboard" as Page, icon: HomeIcon, label: "Dashboard" },
   { page: "analytics" as Page, icon: ChartBarIcon, label: "Analytics" },
   { page: "calendar" as Page, icon: CalendarDaysIcon, label: "Calendar" },
-  { page: "weight" as Page, icon: ScaleIcon, label: "Weight" },
-  { page: "settings" as Page, icon: Cog6ToothIcon, label: "Settings" },
+
+  { page: "wellness" as Page, icon: HeartIcon, label: "Wellness" },
+  { page: "insights" as Page, icon: Lightbulb, label: "Insight" },
 ];
 
 const Layout: React.FC<LayoutProps> = ({
@@ -30,8 +33,8 @@ const Layout: React.FC<LayoutProps> = ({
 }) => {
   return (
     <div className="bg-neutral-100 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 min-h-screen flex flex-col font-sans transition-colors duration-300">
-      <div className="flex-grow p-4 sm:p-6 pb-24">{children}</div>
-      <nav className="fixed bottom-0 left-0 right-0 h-20 bg-white/30 dark:bg-black/30 backdrop-blur-xl border-t border-neutral-200 dark:border-neutral-800 flex justify-around items-center">
+      <div className="flex-grow p-4 sm:p-6 pb-0">{children}</div>
+      <nav className="sticky bottom-0 left-0 right-0 h-20 bg-white/30 dark:bg-black/30 backdrop-blur-xl border-t border-neutral-200 dark:border-neutral-800 flex justify-around items-center">
         {navItems.map(({ page, icon: Icon, label }) => (
           <button
             key={page}
