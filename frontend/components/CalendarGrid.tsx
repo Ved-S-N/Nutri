@@ -11,7 +11,8 @@ export default function CalendarGrid({ month, days, onSelectDay }) {
       const w = window.innerWidth;
 
       if (w < 330) setColumns(2); // Tiny phones
-      else if (w < 390) setColumns(3); // Small phones
+      else if (w < 445) setColumns(3); // Small phones
+      else if (w < 653) setColumns(4);
       else setColumns(7); // Normal
     };
 
