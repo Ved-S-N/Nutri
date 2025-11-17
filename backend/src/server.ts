@@ -33,14 +33,16 @@ const connect = async () => {
   }
 };
 
-// wrap express only once
+// single express wrapper
 const expressHandler = serverless(app);
 
-// serverless export
-export const handler = async (req: any, res: any) => {
+// vercel default export
+const handler = async (req: any, res: any) => {
   await connect();
   return expressHandler(req, res);
 };
+
+export default handler;
 
 // local dev mode
 if (process.env.NODE_ENV !== "production") {
