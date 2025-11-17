@@ -3,3 +3,4 @@ node_modules/
 dist/
 build/
 text-ignore.txt
+dist/

@@ -1,7 +1,7 @@
 // src/app.ts
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
+// import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes";
 import foodRoutes from "./routes/foodRoutes";
 import foodLogRoutes from "./routes/foodLogRoutes";
@@ -21,7 +21,7 @@ import geminiRoutes from "./routes/geminiRoutes";
 import calendarRoutes from "./routes/calendarRoutes";
 import aiPhotoRoutes from "./routes/aiPhotoRoutes";
 
-dotenv.config();
+// dotenv.config();
 
 const app = express();
 app.use(
