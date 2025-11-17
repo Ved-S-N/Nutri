@@ -109,8 +109,13 @@ export default function CalendarGrid({ month, days, onSelectDay }) {
 
               {/* Protein + Fat */}
               <div className="flex justify-between mt-1 text-[10px]">
-                <span className="text-emerald-300">{row?.protein ?? 0}g</span>
-                <span className="text-yellow-300">{row?.fat ?? 0}g</span>
+                <span className="text-emerald-300">
+                  {row?.protein ? Number(row.protein.toFixed(1)) : 0}g
+                </span>
+                <span className="text-yellow-300">
+                  {" "}
+                  {row?.fat ? Number(row.fat.toFixed(1)) : 0}g
+                </span>
               </div>
 
               {/* hydration + workouts */}
