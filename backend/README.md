@@ -21,5 +21,5 @@
 - `GET /api/analytics/weight?start=YYYY-MM-DD&end=YYYY-MM-DD` (protected)
 
 Tokens: include `Authorization: Bearer <token>` header for protected routes.
-
+fucking hell
 This starter provides essential models and controllers. Extend validation, request DTOs, and tests as needed.
