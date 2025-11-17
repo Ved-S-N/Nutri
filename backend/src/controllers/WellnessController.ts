@@ -75,7 +75,8 @@
 // src/controllers/wellnessController.ts
 import { Response } from "express";
 import Wellness from "../models/Wellness";
-import { AuthRequest } from "../middleware/authMiddleware";
+// import { AuthRequest } from "../middleware/authMiddleware";
+import { AuthRequest } from "../types/express";
 
 // ✅ Set wellness for a day
 export const setWellnessForDate = async (req: AuthRequest, res: Response) => {

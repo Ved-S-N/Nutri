@@ -1,4 +1,5 @@
 import axios from "axios";
+import { Express } from "express";
 
 /**
  * Search the USDA FoodData Central API by keyword and return cleaned results.

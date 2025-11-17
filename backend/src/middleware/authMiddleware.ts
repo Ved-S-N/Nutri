@@ -1,5 +1,6 @@
 // src/middleware/authMiddleware.ts
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
+import { AuthRequest } from "../types/express";
 import jwt from "jsonwebtoken";
 import User, { IUser } from "../models/User";
 
@@ -7,10 +8,6 @@ interface JwtPayload {
   id: string;
   iat?: number;
   exp?: number;
-}
-
-export interface AuthRequest extends Request {
-  user?: IUser | null;
 }
 
 export const protect = async (

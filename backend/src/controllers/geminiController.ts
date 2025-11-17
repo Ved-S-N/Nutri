@@ -3,7 +3,8 @@ import { Response } from "express";
 import axios from "axios";
 import FoodLog from "../models/FoodLog";
 import User, { IUser } from "../models/User";
-import { AuthRequest } from "../middleware/authMiddleware";
+// import { AuthRequest } from "../middleware/authMiddleware";
+import { AuthRequest } from "../types/express";
 
 export const generateAISummary = async (req: AuthRequest, res: Response) => {
   try {
