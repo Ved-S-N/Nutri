@@ -17,17 +17,15 @@
 // src/server.ts
 // src/server.ts
 import app from "./app";
-import dotenv from "dotenv";
 import serverless from "serverless-http";
 import connectDB from "./config/db";
 
-dotenv.config();
 const MONGO_URI = process.env.MONGO_URI || "";
 const PORT = process.env.PORT || 5000;
 
 let isConnected = false;
 
-// Connect only once (serverless safe)
+// connect once
 const connect = async () => {
   if (!isConnected) {
     await connectDB(MONGO_URI);
@@ -35,14 +33,16 @@ const connect = async () => {
   }
 };
 
-// Vercel serverless export
+// wrap express only once
+const expressHandler = serverless(app);
+
+// serverless export
 export const handler = async (req: any, res: any) => {
   await connect();
-  const expressHandler = serverless(app);
   return expressHandler(req, res);
 };
 
-// Local environment
+// local dev mode
 if (process.env.NODE_ENV !== "production") {
   (async () => {
     await connect();
