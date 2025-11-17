@@ -1,12 +1,13 @@
 // src/controllers/analyticsController.ts
 import { Request, Response } from "express";
 import WeightLog from "../models/WeightLog";
+import { AuthRequest } from "../types/express";
 
 /**
  * Provides a simple weekly summary for weight:
  * ?start=YYYY-MM-DD&end=YYYY-MM-DD
  */
-export const weightStats = async (req: any, res: Response) => {
+export const weightStats = async (req: AuthRequest, res: Response) => {
   const user = req.user;
   const start = req.query.start ? new Date(req.query.start as string) : null;
   const end = req.query.end ? new Date(req.query.end as string) : null;

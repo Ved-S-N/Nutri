@@ -4,7 +4,7 @@ import {
   getWellnessByDate,
   getWellnessRange,
 } from "../controllers/WellnessController";
-import { protect } from "../types/express";
+import { protect } from "../middleware/authMiddleware";
 
 const router = express.Router();
 

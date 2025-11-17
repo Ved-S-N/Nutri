@@ -1,8 +1,9 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import AIFoodEntry from "../models/AIFoodEntry";
 import axios from "axios";
+import { AuthRequest } from "../types/express";
 
-export const analyzeFoodText = async (req: any, res: Response) => {
+export const analyzeFoodText = async (req: AuthRequest, res: Response) => {
   const { text } = req.body;
   if (!text) return res.status(400).json({ message: "Missing food text" });
 
@@ -67,7 +68,7 @@ export const analyzeFoodText = async (req: any, res: Response) => {
   }
 };
 
-export const getTodaysEntries = async (req: any, res: Response) => {
+export const getTodaysEntries = async (req: AuthRequest, res: Response) => {
   const start = new Date();
   start.setHours(0, 0, 0, 0);
   const end = new Date();

@@ -1,6 +1,6 @@
 import express from "express";
 import { getCalendarMonth } from "../controllers/calendarController";
-import { protect } from "../types/express";
+import { protect } from "../middleware/authMiddleware";
 
 const router = express.Router();
 

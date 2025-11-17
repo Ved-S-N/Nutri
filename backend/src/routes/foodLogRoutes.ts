@@ -6,7 +6,7 @@ import {
   deleteFoodLog,
   getFoodLogsRange,
 } from "../controllers/foodLogController";
-import { protect } from "../types/express";
+import { protect } from "../middleware/authMiddleware";
 
 const router = express.Router();
 router.post("/add", protect, addFoodLog);

@@ -4,12 +4,13 @@ import Food from "../models/Food";
 import FoodLog from "../models/FoodLog";
 import { scaleMacros } from "../utils/macroCalculator";
 import mongoose from "mongoose";
+import { AuthRequest } from "../types/express";
 
 /**
  * Add Food Log
  * Supports both database foods (with foodId) and AI foods (direct macros)
  */
-export const addFoodLog = async (req: any, res: Response) => {
+export const addFoodLog = async (req: AuthRequest, res: Response) => {
   try {
     const user = req.user;
     const {
@@ -88,7 +89,7 @@ export const addFoodLog = async (req: any, res: Response) => {
 /**
  * Get all logs + totals for a given day
  */
-export const getDailySummary = async (req: any, res: Response) => {
+export const getDailySummary = async (req: AuthRequest, res: Response) => {
   try {
     const user = req.user;
     const dateQuery = req.query.date
@@ -126,7 +127,7 @@ export const getDailySummary = async (req: any, res: Response) => {
 /**
  * Delete a food log entry
  */
-export const deleteFoodLog = async (req: Request, res: Response) => {
+export const deleteFoodLog = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     if (!mongoose.isValidObjectId(id))
@@ -140,7 +141,7 @@ export const deleteFoodLog = async (req: Request, res: Response) => {
   }
 };
 
-export const getFoodLogsRange = async (req: any, res: Response) => {
+export const getFoodLogsRange = async (req: AuthRequest, res: Response) => {
   try {
     const { days = 7 } = req.query;
     const cutoff = new Date();

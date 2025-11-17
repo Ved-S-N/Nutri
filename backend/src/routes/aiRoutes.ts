@@ -1,7 +1,7 @@
 import express from "express";
 import multer from "multer";
 import { recognizeFoodFromImage } from "../services/aiService";
-import { protect } from "../types/express";
+import { protect } from "../middleware/authMiddleware";
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });

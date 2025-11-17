@@ -1,5 +1,5 @@
 import express from "express";
-import { protect } from "../types/express";
+import { protect } from "../middleware/authMiddleware";
 import { getFoodByBarcode } from "../controllers/barcodeController";
 import {
   createCustomFood,

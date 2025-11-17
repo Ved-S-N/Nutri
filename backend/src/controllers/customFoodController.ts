@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import CustomFood from "../models/CustomFood";
+import { AuthRequest } from "../types/express";
 
-export const createCustomFood = async (req: any, res: Response) => {
+export const createCustomFood = async (req: AuthRequest, res: Response) => {
   const { name, ingredients } = req.body;
 
   if (!name || !ingredients?.length)
@@ -31,7 +32,7 @@ export const createCustomFood = async (req: any, res: Response) => {
   res.status(201).json(customFood);
 };
 
-export const getUserCustomFoods = async (req: any, res: Response) => {
+export const getUserCustomFoods = async (req: AuthRequest, res: Response) => {
   const foods = await CustomFood.find({ user: req.user._id });
   res.json(foods);
 };

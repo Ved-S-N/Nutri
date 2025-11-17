@@ -5,7 +5,7 @@ import {
   getFavoriteFoods,
   deleteFavoriteFood,
 } from "../controllers/favoriteFoodController";
-import { protect } from "../types/express";
+import { protect } from "../middleware/authMiddleware";
 
 const router = express.Router();
 
