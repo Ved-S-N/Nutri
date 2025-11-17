@@ -4,19 +4,16 @@
     "module": "commonjs",
     "rootDir": "src",
     "outDir": "dist",
-    "esModuleInterop": true,
 
-    "skipLibCheck": true,
-    "noEmitOnError": false,
     "strict": false,
     "noImplicitAny": false,
-    "strictNullChecks": false,
-    "strictPropertyInitialization": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
 
-    "allowJs": true,
-    "checkJs": false,
-
-    "pretty": false,
-    "typeRoots": ["./src/types", "./node_modules/@types"]
-  }
+    "allowJs": false,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
