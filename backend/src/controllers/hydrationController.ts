@@ -1,9 +1,8 @@
 import { Request, Response } from "express";
 import Hydration from "../models/Hydration";
-// import { Request } from "../types/express"
 
 // --------------------------------------
-// SET HYDRATION FOR A DATE
+// SET HYDRATION FOR A DATE!
 // --------------------------------------
 export const setHydrationForDate = async (req: Request, res: Response) => {
   try {
