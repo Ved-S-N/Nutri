@@ -19,31 +19,28 @@ const razorpay = new Razorpay({
 });
 
 // ✅ Create Stripe payment intent
-router.post(
-  "/create-payment-intent",
-  async (req: AuthRequest, res: Response) => {
-    try {
-      const { amount, currency } = req.body as {
-        amount: number;
-        currency: string;
-      };
+router.post("/create-payment-intent", async (req: Request, res: Response) => {
+  try {
+    const { amount, currency } = req.body as {
+      amount: number;
+      currency: string;
+    };
 
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount,
-        currency,
-        automatic_payment_methods: { enabled: true },
-      });
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
+      currency,
+      automatic_payment_methods: { enabled: true },
+    });
 
-      res.json({ clientSecret: paymentIntent.client_secret });
-    } catch (error: any) {
-      console.error(error);
-      res.status(500).json({ message: error.message || "Stripe error" });
-    }
+    res.json({ clientSecret: paymentIntent.client_secret });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ message: error.message || "Stripe error" });
   }
-);
+});
 
 // ✅ Create Razorpay order
-router.post("/create-order", async (req: AuthRequest, res: Response) => {
+router.post("/create-order", async (req: Request, res: Response) => {
   try {
     const { amount, currency } = req.body as {
       amount: number;

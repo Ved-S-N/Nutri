@@ -1,6 +1,12 @@
-import { Request } from "express";
+import * as express from "express";
 import { IUser } from "../models/User";
 
-export interface AuthRequest extends Request {
-  user?: IUser | null;
+declare global {
+  namespace Express {
+    interface Request {
+      user?: IUser | null;
+    }
+  }
 }
+
+export {};

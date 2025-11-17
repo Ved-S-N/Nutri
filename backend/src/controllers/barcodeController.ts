@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Request, Response } from "express";
 
-export const getFoodByBarcode = async (req: AuthRequest, res: Response) => {
+export const getFoodByBarcode = async (req: Request, res: Response) => {
   const { code } = req.params;
   if (!code) return res.status(400).json({ message: "Missing barcode" });
 

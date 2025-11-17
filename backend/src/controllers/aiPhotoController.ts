@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import axios from "axios";
 
-export const analyzeFoodPhoto = async (req: AuthRequest, res: Response) => {
+export const analyzeFoodPhoto = async (req: Request, res: Response) => {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return res.status(500).json({ message: "Missing API key" });

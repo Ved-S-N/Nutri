@@ -4,7 +4,7 @@ import CustomFood from "../models/CustomFood"; // 🧩 add this
 import { searchFoodUSDA } from "../services/aiService";
 import { searchFoodSpoonacular } from "../services/spooncularService";
 
-export const searchFoods = async (req: AuthRequest, res: Response) => {
+export const searchFoods = async (req: Request, res: Response) => {
   const q = (req.query.q as string) || "";
   if (!q) return res.status(400).json({ message: "Missing query" });
 

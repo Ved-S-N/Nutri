@@ -1,10 +1,9 @@
 // src/controllers/wellnessController.ts
-import { Response } from "express";
+import { Request, Response } from "express";
 import Wellness from "../models/Wellness";
-import { AuthRequest } from "../types/express";
 
 // ✅ Set wellness for a day
-export const setWellnessForDate = async (req: AuthRequest, res: Response) => {
+export const setWellnessForDate = async (req: Request, res: Response) => {
   try {
     const userId = req.user?._id;
     const { date, sleepHours, moodRating, notes } = req.body;
@@ -29,7 +28,7 @@ export const setWellnessForDate = async (req: AuthRequest, res: Response) => {
 };
 
 // ✅ Get wellness for a specific date
-export const getWellnessByDate = async (req: AuthRequest, res: Response) => {
+export const getWellnessByDate = async (req: Request, res: Response) => {
   try {
     const userId = req.user?._id;
     const { date } = req.params;
@@ -56,7 +55,7 @@ export const getWellnessByDate = async (req: AuthRequest, res: Response) => {
 };
 
 // ✅ FIXED VERSION — wellness range for Insights Dashboard
-export const getWellnessRange = async (req: AuthRequest, res: Response) => {
+export const getWellnessRange = async (req: Request, res: Response) => {
   try {
     const userId = req.user._id;
     const days = Number(req.query.days) || 7;

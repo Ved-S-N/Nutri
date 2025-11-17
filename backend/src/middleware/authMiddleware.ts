@@ -1,6 +1,5 @@
 // src/middleware/authMiddleware.ts
 import { Response, NextFunction } from "express";
-import { AuthRequest } from "../types/express";
 import jwt from "jsonwebtoken";
 import User, { IUser } from "../models/User";
 
@@ -11,7 +10,7 @@ interface JwtPayload {
 }
 
 export const protect = async (
-  req: AuthRequest,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {

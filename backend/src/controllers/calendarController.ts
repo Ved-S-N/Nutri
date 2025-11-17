@@ -1,5 +1,4 @@
-import { Response } from "express";
-import { AuthRequest } from "../types/express";
+import { Request, Response } from "express";
 import FoodLog from "../models/FoodLog";
 import Workout from "../models/Workout";
 import Hydration from "../models/Hydration";
@@ -15,7 +14,7 @@ function sameDay(a: Date, b: Date) {
   return normalize(a).getTime() === normalize(b).getTime();
 }
 
-export const getCalendarMonth = async (req: AuthRequest, res: Response) => {
+export const getCalendarMonth = async (req: Request, res: Response) => {
   try {
     const userId = req.user?._id;
     const month = req.query.month as string;

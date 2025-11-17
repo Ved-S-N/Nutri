@@ -1,12 +1,11 @@
-import { Response } from "express";
+import { Request, Response } from "express";
 import Hydration from "../models/Hydration";
-// import { AuthRequest } from "../types/express"
-import { AuthRequest } from "../types/express";
+// import { Request } from "../types/express"
 
 // --------------------------------------
 // SET HYDRATION FOR A DATE
 // --------------------------------------
-export const setHydrationForDate = async (req: AuthRequest, res: Response) => {
+export const setHydrationForDate = async (req: Request, res: Response) => {
   try {
     const userId = req.user?._id;
     const { date, glassesConsumed, goalGlasses } = req.body;
@@ -34,7 +33,7 @@ export const setHydrationForDate = async (req: AuthRequest, res: Response) => {
 // --------------------------------------
 // GET HYDRATION FOR A DATE
 // --------------------------------------
-export const getHydrationByDate = async (req: AuthRequest, res: Response) => {
+export const getHydrationByDate = async (req: Request, res: Response) => {
   try {
     const userId = req.user?._id;
     const { date } = req.params;
@@ -65,7 +64,7 @@ export const getHydrationByDate = async (req: AuthRequest, res: Response) => {
 // GET HYDRATION RANGE
 // GET /api/hydration/range?days=7
 // --------------------------------------
-export const getHydrationRange = async (req: AuthRequest, res: Response) => {
+export const getHydrationRange = async (req: Request, res: Response) => {
   try {
     const userId = req.user!._id;
     const days = Number(req.query.days) || 7;

@@ -1,12 +1,11 @@
 // src/controllers/geminicontroller.ts
-import { Response } from "express";
+import { Request, Response } from "express";
 import axios from "axios";
 import FoodLog from "../models/FoodLog";
 import User, { IUser } from "../models/User";
-// import { AuthRequest } from "../types/express"
-import { AuthRequest } from "../types/express";
+// import { Request } from "../types/express"
 
-export const generateAISummary = async (req: AuthRequest, res: Response) => {
+export const generateAISummary = async (req: Request, res: Response) => {
   try {
     if (!req.user?._id) {
       return res

@@ -2,9 +2,8 @@
 import { Request, Response } from "express";
 import User from "../models/User";
 import { generateToken } from "../utils/generateToken";
-import { AuthRequest } from "../types/express";
 
-export const register = async (req: AuthRequest, res: Response) => {
+export const register = async (req: Request, res: Response) => {
   const { name, email, password } = req.body;
   if (!name || !email || !password) {
     return res
@@ -34,7 +33,7 @@ export const register = async (req: AuthRequest, res: Response) => {
   });
 };
 
-export const login = async (req: AuthRequest, res: Response) => {
+export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
   if (!user) return res.status(401).json({ message: "Invalid credentials" });
@@ -55,7 +54,7 @@ export const login = async (req: AuthRequest, res: Response) => {
   });
 };
 
-export const getProfile = async (req: AuthRequest, res: Response) => {
+export const getProfile = async (req: Request, res: Response) => {
   const user = req.user;
   if (!user) return res.status(404).json({ message: "User not found" });
   res.json(user);

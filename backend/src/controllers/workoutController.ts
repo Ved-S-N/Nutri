@@ -1,10 +1,9 @@
-import { Response } from "express";
+import { Request, Response } from "express";
 import Workout from "../models/Workout";
-// import { AuthRequest } from "../types/express"
-import { AuthRequest } from "../types/express";
+// import { Request } from "../types/express"
 
 // ✅ Add a Workout
-export const addWorkout = async (req: AuthRequest, res: Response) => {
+export const addWorkout = async (req: Request, res: Response) => {
   try {
     const userId = req.user?._id;
     const { date, type, durationMinutes, intensity, caloriesBurned } = req.body;
@@ -31,7 +30,7 @@ export const addWorkout = async (req: AuthRequest, res: Response) => {
 };
 
 // ✅ Get all workouts for a specific date
-export const getWorkoutsByDate = async (req: AuthRequest, res: Response) => {
+export const getWorkoutsByDate = async (req: Request, res: Response) => {
   try {
     const userId = req.user?._id;
     const { date } = req.params; // 👈 FIXED HERE
@@ -59,7 +58,7 @@ export const getWorkoutsByDate = async (req: AuthRequest, res: Response) => {
 };
 
 // ✅ Delete a workout
-export const deleteWorkout = async (req: AuthRequest, res: Response) => {
+export const deleteWorkout = async (req: Request, res: Response) => {
   try {
     const userId = req.user?._id;
     const { id } = req.params;
@@ -78,7 +77,7 @@ export const deleteWorkout = async (req: AuthRequest, res: Response) => {
 };
 
 // GET /api/workouts/range?days=7
-export const getWorkoutsRange = async (req: AuthRequest, res: Response) => {
+export const getWorkoutsRange = async (req: Request, res: Response) => {
   try {
     const userId = req.user!._id;
     const days = Number(req.query.days) || 7;
