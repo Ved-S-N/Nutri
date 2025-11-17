@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc || true",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "vercel-build": "tsc"
   },
   "keywords": [],
   "author": "",
@@ -24,6 +25,7 @@
     "mongoose": "^8.19.1",
     "multer": "^2.0.2",
     "razorpay": "^2.9.6",
+    "serverless-http": "^4.0.0",
     "stripe": "^19.2.0"
   },
   "devDependencies": {
