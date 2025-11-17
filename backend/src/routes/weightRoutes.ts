@@ -5,7 +5,7 @@ import {
   getWeightHistory,
   deleteWeight,
 } from "../controllers/weightController";
-import { protect } from "../middleware/authMiddleware";
+import { protect } from "../types/express";
 
 const router = express.Router();
 router.post("/weight-log", protect, addWeight);

@@ -5,7 +5,7 @@ import {
   deleteWorkout,
   getWorkoutsRange,
 } from "../controllers/workoutController";
-import { protect } from "../middleware/authMiddleware";
+import { protect } from "../types/express";
 
 const router = express.Router();
 

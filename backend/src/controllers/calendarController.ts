@@ -1,5 +1,5 @@
 import { Response } from "express";
-import { AuthRequest } from "../middleware/authMiddleware";
+import { AuthRequest } from "../types/express";
 import FoodLog from "../models/FoodLog";
 import Workout from "../models/Workout";
 import Hydration from "../models/Hydration";

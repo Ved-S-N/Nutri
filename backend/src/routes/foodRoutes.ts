@@ -3,7 +3,7 @@ import express from "express";
 import { searchFoods } from "../controllers/foodController";
 import { getFoodByBarcode } from "../controllers/barcodeController";
 import { createCustomFood } from "../controllers/customFoodController";
-import { protect } from "../middleware/authMiddleware";
+import { protect } from "../types/express";
 
 const router = express.Router();
 router.get("/search", searchFoods);

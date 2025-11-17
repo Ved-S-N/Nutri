@@ -1,6 +1,6 @@
 import { Response } from "express";
 import Hydration from "../models/Hydration";
-// import { AuthRequest } from "../middleware/authMiddleware";
+// import { AuthRequest } from "../types/express"
 import { AuthRequest } from "../types/express";
 
 // --------------------------------------

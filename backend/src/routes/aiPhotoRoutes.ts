@@ -1,7 +1,7 @@
 import express from "express";
 import multer from "multer";
 import { analyzeFoodPhoto } from "../controllers/aiPhotoController";
-import { protect } from "../middleware/authMiddleware";
+import { protect } from "../types/express";
 
 const router = express.Router();
 

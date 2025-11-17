@@ -1,7 +1,7 @@
 // src/routes/userRoutes.ts
 import express from "express";
 import { updateGoal } from "../controllers/userController";
-import { protect } from "../middleware/authMiddleware";
+import { protect } from "../types/express";
 
 const router = express.Router();
 router.put("/update-goal", protect, updateGoal);

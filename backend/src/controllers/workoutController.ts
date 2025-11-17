@@ -1,6 +1,6 @@
 import { Response } from "express";
 import Workout from "../models/Workout";
-// import { AuthRequest } from "../middleware/authMiddleware";
+// import { AuthRequest } from "../types/express"
 import { AuthRequest } from "../types/express";
 
 // ✅ Add a Workout

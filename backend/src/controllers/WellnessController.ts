@@ -1,6 +1,7 @@
 // import { Response } from "express";
 // import Wellness from "../models/Wellness";
-// import { AuthRequest } from "../middleware/authMiddleware"; // 1. Import AuthRequest
+// import { AuthRequest } from "../types/express"
+// 1. Import AuthRequest
 
 // export const setWellnessForDate = async (req: AuthRequest, res: Response) => {
 //   try {
@@ -75,7 +76,7 @@
 // src/controllers/wellnessController.ts
 import { Response } from "express";
 import Wellness from "../models/Wellness";
-// import { AuthRequest } from "../middleware/authMiddleware";
+// import { AuthRequest } from "../types/express"
 import { AuthRequest } from "../types/express";
 
 // ✅ Set wellness for a day

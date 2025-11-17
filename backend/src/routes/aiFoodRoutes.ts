@@ -3,7 +3,7 @@ import {
   analyzeFoodText,
   getTodaysEntries,
 } from "../controllers/aiFoodController";
-import { protect } from "../middleware/authMiddleware";
+import { protect } from "../types/express";
 
 const router = express.Router();
 

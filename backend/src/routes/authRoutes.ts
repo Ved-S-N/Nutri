@@ -1,7 +1,7 @@
 // src/routes/authRoutes.ts
 import express from "express";
 import { register, login, getProfile } from "../controllers/authController";
-import { protect } from "../middleware/authMiddleware";
+import { protect } from "../types/express";
 
 const router = express.Router();
 router.post("/register", register);
