@@ -47,6 +47,10 @@ const DashboardInsightsPage: React.FC = () => {
           apiFetch("/api/hydration/range?days=7"),
           apiFetch("/api/wellness/range?days=7"),
         ]);
+        console.log(
+          "Hydration FIRST ITEM (FULL):",
+          JSON.stringify(hydration[0], null, 2)
+        );
 
         setFoodData(Array.isArray(food) ? food : []);
         setWorkoutData(Array.isArray(workouts) ? workouts : []);
@@ -132,18 +136,43 @@ const DashboardInsightsPage: React.FC = () => {
 
     const hydrationConsistency =
       hydrationData.length > 0
-        ? (hydrationData.filter(
-            (h: any) => (h.amount || h.glassesConsumed || 0) >= 2000
-          ).length /
-            hydrationData.length) *
-          100
+        ? (() => {
+            const percs = hydrationData
+              .map((h: any) => {
+                const consumed = h.glassesConsumed ?? null;
+                const goal = h.goalGlasses ?? null;
+                if (consumed == null || goal == null || goal === 0) return null;
+                return (consumed / goal) * 100; // percent for that day
+              })
+              .filter((v) => v != null);
+
+            if (percs.length === 0) return 0;
+            const avg = percs.reduce((a, b) => a + b, 0) / percs.length;
+            return avg;
+          })()
         : 72;
 
     const workoutConsistency =
       workoutData.length > 0
-        ? (workoutData.filter((w: any) => (w.duration || 0) >= 30).length /
-            workoutData.length) *
-          100
+        ? (() => {
+            // Set of days (yyy-mm-dd) where user worked out >= 30 min
+            const daysWithGoodSession = new Set<string>();
+
+            workoutData.forEach((w: any) => {
+              const duration =
+                w.duration ?? w.durationMinutes ?? w.durationMinutesLegacy ?? 0;
+
+              if (duration >= 30 && w.date) {
+                const day = new Date(w.date).toISOString().slice(0, 10);
+                daysWithGoodSession.add(day);
+              }
+            });
+
+            // Percent of active days out of 7-day window
+            const percent = (daysWithGoodSession.size / 7) * 100;
+
+            return Math.round(Math.max(0, Math.min(100, percent)));
+          })()
         : 60;
 
     const avgScore =
@@ -157,26 +186,205 @@ const DashboardInsightsPage: React.FC = () => {
     });
   }, [foodData, workoutData, hydrationData, goals]);
 
-  /* ------------------ Sleep correlation dataset ------------------ */
+  /* ------------------ Sleep / Wellness correlation dataset (improved craving derivation) ------------------ */
+  /* Uses wellness (sleepData) rows and matches them to next-day food rows.
+   Derives a craving-like score from:
+     - moodRating (1..5) inverse
+     - notes (keyword heuristics)
+     - calorie deficit (goal vs actual)
+     - short sleep relative to avg (shortfall)
+   Combines these into a 0..10 score.
+*/
   const sleepCorrelationData = useMemo(() => {
     if (!sleepData?.length || !foodData?.length) return [];
-    return sleepData.map((s: any) => {
-      const nextDay = new Date(s.date);
-      nextDay.setDate(nextDay.getDate() + 1);
-      const label = nextDay.toLocaleDateString("en-US", { weekday: "short" });
-      const f = foodData.find(
-        (x) =>
-          new Date(x.date).toLocaleDateString("en-US", { weekday: "short" }) ===
-          label
-      );
+
+    const toDayKey = (d: string | Date | undefined | null) => {
+      if (!d) return null;
+      const dt = typeof d === "string" ? new Date(d) : d;
+      if (Number.isNaN(dt.getTime())) {
+        const alt = new Date(String(d).replace(" ", "T"));
+        if (!Number.isNaN(alt.getTime())) return alt.toISOString().slice(0, 10);
+        return null;
+      }
+      return dt.toISOString().slice(0, 10);
+    };
+
+    const getCaloriesFromFood = (f: any) => {
+      if (!f) return null;
+      const candidates = [
+        f.calories,
+        f.totalCalories,
+        f.kcal,
+        f.energy,
+        f.cal,
+        f.calorie,
+        f.nutrients?.calories,
+      ];
+      for (const c of candidates) {
+        if (c == null) continue;
+        if (typeof c === "number" && !Number.isNaN(c)) return c;
+        if (
+          typeof c === "string" &&
+          c.trim() !== "" &&
+          !Number.isNaN(Number(c))
+        )
+          return Number(c);
+      }
+      return null;
+    };
+
+    // quick keyword-based notes sentiment -> cravings signal (higher -> more cravings)
+    const notesCravingScore = (notes: string | null | undefined) => {
+      if (!notes || typeof notes !== "string") return 0;
+      const s = notes.toLowerCase();
+      let score = 0;
+      // strong craving keywords
+      if (
+        /\b(crave|craving|want to eat|hungry|urge|junk|snack|sugar)\b/.test(s)
+      )
+        score += 0.9;
+      // tired/stress increases cravings a bit
+      if (/\b(tired|exhausted|stress|anxious|stressed|overwhelmed)\b/.test(s))
+        score += 0.6;
+      // good mood words reduce cravings
+      if (/\b(good|great|calm|well|energized|rested)\b/.test(s)) score -= 0.6;
+      // clamp 0..1
+      return Math.max(0, Math.min(1, score));
+    };
+
+    // Build lookup maps
+    const foodByDay: Record<string, any[]> = foodData.reduce(
+      (acc: Record<string, any[]>, f: any) => {
+        const k = toDayKey(f?.date);
+        if (k) {
+          acc[k] = acc[k] || [];
+          acc[k].push(f);
+        }
+        return acc;
+      },
+      {}
+    );
+
+    const foodByWeekday: Record<string, any[]> = foodData.reduce(
+      (acc: Record<string, any[]>, f: any) => {
+        const dt = f?.date ? new Date(f.date) : null;
+        if (!dt || Number.isNaN(dt.getTime())) return acc;
+        const wk = dt.toLocaleDateString("en-US", { weekday: "short" });
+        acc[wk] = acc[wk] || [];
+        acc[wk].push(f);
+        return acc;
+      },
+      {}
+    );
+
+    // compute mean sleep across wellness rows (used for sleep deficit)
+    const numericSleeps = sleepData
+      .map((w: any) => (typeof w.sleepHours === "number" ? w.sleepHours : null))
+      .filter(Boolean) as number[];
+    const meanSleep = numericSleeps.length
+      ? numericSleeps.reduce((a, b) => a + b, 0) / numericSleeps.length
+      : 7;
+
+    // safety: goals.calories fallback
+    const goalCalories =
+      goals?.calories && Number.isFinite(goals.calories)
+        ? goals.calories
+        : null;
+
+    const rows = sleepData.map((w: any) => {
+      // next-day matching
+      const day = new Date(w.date);
+      const nextDay = new Date(day);
+      nextDay.setDate(day.getDate() + 1);
+      const nextKey = toDayKey(nextDay);
+      const nextWeekday = nextDay.toLocaleDateString("en-US", {
+        weekday: "short",
+      });
+
+      let matchedFood: any = undefined;
+      if (
+        nextKey &&
+        Array.isArray(foodByDay[nextKey]) &&
+        foodByDay[nextKey].length > 0
+      ) {
+        matchedFood = foodByDay[nextKey][0];
+      } else {
+        const bucket = foodByWeekday[nextWeekday];
+        if (bucket && bucket.length > 0) matchedFood = bucket[0];
+      }
+
+      const calories = getCaloriesFromFood(matchedFood); // may be null
+
+      // derive signals
+      const mood =
+        typeof w.moodRating === "number" && !Number.isNaN(w.moodRating)
+          ? w.moodRating
+          : null; // 1..5
+      // mood -> inverse craving fraction: mood 5 -> 0, mood 1 -> 1
+      const moodFrac =
+        mood != null ? Math.max(0, Math.min(1, (5 - mood) / 4)) : null;
+
+      const notesScore = notesCravingScore(w?.notes ?? w?.note ?? null); // 0..1
+
+      // calorie deficit (only meaningful if goals present)
+      const calorieDeficitFrac =
+        calories != null && goalCalories != null
+          ? Math.max(0, (goalCalories - calories) / Math.max(1, goalCalories))
+          : 0;
+
+      // sleep shortfall relative to meanSleep (0..1)
+      const sleepHours = typeof w.sleepHours === "number" ? w.sleepHours : null;
+      const sleepDeficitFrac =
+        sleepHours != null
+          ? Math.max(0, (meanSleep - sleepHours) / Math.max(0.1, meanSleep))
+          : 0;
+
+      // weights: mood strongest, then notes, then calories, then sleep
+      const wMood = 0.5;
+      const wNotes = 0.2;
+      const wCal = 0.2;
+      const wSleep = 0.1;
+
+      const components = [
+        (moodFrac ?? 0) * wMood,
+        notesScore * wNotes,
+        calorieDeficitFrac * wCal,
+        sleepDeficitFrac * wSleep,
+      ];
+      const combined = components.reduce((a, b) => a + b, 0); // roughly 0..1 (but may be slightly <1)
+      // final 0..10 score
+      const cravingScore = Math.max(
+        0,
+        Math.min(10, Math.round(combined * 10 * 10) / 10)
+      ); // one decimal (e.g., 4.3)
+
       return {
-        dateLabel: label,
-        sleepHours: s.sleep || s.hours || 7,
-        nextDayCalories: f?.calories || 0,
-        nextDayCravingScore: s.mood || s.craving || 5,
+        dateLabel: nextDay.toLocaleDateString("en-US", { weekday: "short" }),
+        sleepHours,
+        nextDayCalories: calories ?? null,
+        nextDayCravingScore: cravingScore,
+        // flags for UI
+        _cravingDerivedFromMood:
+          mood != null ||
+          notesScore > 0 ||
+          calorieDeficitFrac > 0 ||
+          sleepDeficitFrac > 0,
+        _wellnessRaw: w,
+        _matchedFoodRaw: matchedFood ?? null,
       };
     });
-  }, [sleepData, foodData]);
+
+    console.log(
+      "sleepCorrelation (derived) summary — rows:",
+      rows.length,
+      "validCalories:",
+      rows.filter((r) => r.nextDayCalories != null).length,
+      "validCravings(derived):",
+      rows.filter((r) => r.nextDayCravingScore != null).length
+    );
+
+    return rows;
+  }, [sleepData, foodData, goals]);
 
   /* ------------------ Calendar action (placeholder) ------------------ */
   const onCalendarOpen = () => {
