@@ -317,20 +317,29 @@ const ScanPage: React.FC = () => {
 
   /* ---------- When user selects meal ---------- */
   const handleMealSelect = async (mealType: string) => {
+    if (!analysisResult) {
+      toast.error("Nothing to save");
+      return;
+    }
+
+    // Use the optional photo description as the name if present, otherwise fallback
+    const nameToSave = photoDescription?.trim() || "AI Photo Meal";
+
     try {
       await apiFetch("/api/food-log/add", {
         method: "POST",
         body: JSON.stringify({
           mealType,
-          foodName: "AI Photo Meal",
-          calories: analysisResult!.totalCalories,
-          protein: analysisResult!.protein,
-          carbs: analysisResult!.carbs,
-          fat: analysisResult!.fat,
+          foodName: nameToSave,
+          calories: analysisResult.totalCalories,
+          protein: analysisResult.protein,
+          carbs: analysisResult.carbs,
+          fat: analysisResult.fat,
         }),
       });
 
       toast.success(`Saved to ${mealType}!`);
+      setMealPickerOpen(false); // close picker after saving
 
       setTimeout(() => {
         window.location.href = "/dashboard";
